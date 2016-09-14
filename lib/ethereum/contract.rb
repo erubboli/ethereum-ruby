@@ -11,7 +11,7 @@ module Ethereum
       @events = []
       @constructor_inputs = @abi.detect {|x| x["type"] == "constructor"}["inputs"] rescue nil
       @abi.select {|x| x["type"] == "function" }.each do |abifun|
-        @functions << Ethereum::Function.new(abifun) 
+        @functions << Ethereum::Function.new(abifun)
       end
       @abi.select {|x| x["type"] == "event" }.each do |abievt|
         @events << Ethereum::ContractEvent.new(abievt)
@@ -66,7 +66,7 @@ module Ethereum
         end
 
         define_method :at do |addr|
-          instance_variable_set("@address", addr) 
+          instance_variable_set("@address", addr)
           self.events.each do |event|
             event.set_address(addr)
             event.set_client(connection)
@@ -97,7 +97,7 @@ module Ethereum
           instance_variable_set("@gas", gas)
         end
 
-        define_method :gas do 
+        define_method :gas do
           instance_variable_get("@gas") || 3000000
         end
 
@@ -119,11 +119,11 @@ module Ethereum
             logs["result"].each do |result|
               inputs = evt.input_types
               outputs = inputs.zip(result["topics"][1..-1])
-              data = {blockNumber: result["blockNumber"].hex, transactionHash: result["transactionHash"], blockHash: result["blockHash"], transactionIndex: result["transactionIndex"].hex, topics: []} 
+              data = {blockNumber: result["blockNumber"].hex, transactionHash: result["transactionHash"], blockHash: result["blockHash"], transactionIndex: result["transactionIndex"].hex, topics: []}
               outputs.each do |output|
                 data[:topics] << formatter.from_payload(output)
               end
-              collection << data 
+              collection << data
             end
             return collection
           end
@@ -135,11 +135,11 @@ module Ethereum
             logs["result"].each do |result|
               inputs = evt.input_types
               outputs = inputs.zip(result["topics"][1..-1])
-              data = {blockNumber: result["blockNumber"].hex, transactionHash: result["transactionHash"], blockHash: result["blockHash"], transactionIndex: result["transactionIndex"].hex, topics: []} 
+              data = {blockNumber: result["blockNumber"].hex, transactionHash: result["transactionHash"], blockHash: result["blockHash"], transactionIndex: result["transactionIndex"].hex, topics: []}
               outputs.each do |output|
                 data[:topics] << formatter.from_payload(output)
               end
-              collection << data 
+              collection << data
             end
             return collection
           end
@@ -178,9 +178,9 @@ module Ethereum
           define_method call_function_name do |*args|
             data = self.send(call_raw_function_name, *args)
             output = data[:formatted]
-            if output.length == 1 
+            if output.length == 1
               return output[0]
-            else 
+            else
               return output
             end
           end
