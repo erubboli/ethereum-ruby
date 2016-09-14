@@ -7,10 +7,13 @@ module Ethereum
       @file = File.read(file)
       @client = client
       sol_output = @client.compile_solidity(@file)
+      if sol_output["error"]
+        raise "Error compiling solidity file: #{sol_output["error"]["message"]}"
+      end
       contracts = sol_output["result"].keys
       @contracts = []
       contracts.each do |contract|
-        abi = sol_output["result"][contract]["info"]["abiDefinition"] 
+        abi = sol_output["result"][contract]["info"]["abiDefinition"]
         name = contract
         code = sol_output["result"][contract]["code"]
         @contracts << Ethereum::Contract.new(name, code, abi)

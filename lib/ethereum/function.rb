@@ -1,7 +1,7 @@
 module Ethereum
   class Function
 
-    attr_accessor :name, :inputs, :outputs, :signature, :constant, :function_string 
+    attr_accessor :name, :inputs, :outputs, :signature, :constant, :function_string
 
     def initialize(data)
       @name = data["name"]
@@ -13,7 +13,7 @@ module Ethereum
         Ethereum::FunctionOutput.new(output)
       end
       @function_string = "#{@name}(#{@inputs.collect {|x| x.type }.join(",")})"
-      @signature = Digest::SHA3.hexdigest(@function_string, 256)[0..7]
+      @signature = SHA3::Digest::SHA256.hexdigest(@function_string)[0..7]
     end
 
   end
