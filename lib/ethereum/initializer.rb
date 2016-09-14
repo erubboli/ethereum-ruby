@@ -6,7 +6,7 @@ module Ethereum
     def initialize(file, client = Ethereum::IpcClient.new)
       @file = File.read(file)
       @client = client
-      sol_output = @client.compile_solidity(@file)
+      sol_output = @client.eth_compile_solidity(@file)
       if sol_output["error"]
         raise "Error compiling solidity file: #{sol_output["error"]["message"]}"
       end
