@@ -33,8 +33,8 @@ module Ethereum
     miner_hashrate miner_makeDAG miner_setExtra miner_setGasPrice miner_start
     miner_startAutoDAG miner_stop miner_stopAutoDAG personal_importRawKey
     personal_listAccounts personal_lockAccount personal_newAccount
-    personal_unlockAccount personal_sendTransaction txpool_content
-    txpool_inspect txpool_status)
+    personal_unlockAccount personal_signAndSendTransaction
+    personal_sendTransaction txpool_content txpool_inspect txpool_status)
 
     attr_accessor :command, :id, :log, :logger
 

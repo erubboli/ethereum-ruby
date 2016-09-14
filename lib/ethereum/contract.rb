@@ -77,13 +77,19 @@ module Ethereum
           instance_variable_get("@address")
         end
 
-        define_method :as do |addr|
+        define_method :as do |addr, passphrase|
           instance_variable_set("@sender", addr)
+          instance_variable_set("@passphrase", passphrase)
         end
 
         define_method :sender do
           instance_variable_get("@sender") || connection.coinbase["result"]
         end
+
+        define_method :passphrase do
+          instance_variable_get("@passphrase")
+        end
+
 
         define_method :set_gas_price do |gp|
           instance_variable_set("@gas_price", gp)
@@ -195,7 +201,14 @@ module Ethereum
             arg_types.zip(args).each do |arg|
               payload << formatter.to_payload(arg)
             end
-            txid = connection.send_transaction({to: self.address, from: self.sender, data: "0x" + payload.join(), gas: self.gas, gasPrice: self.gas_price})["result"]
+            data = "0x" + payload.join
+            args = { to: address,from: sender, data: data, gas: gas, gasPrice: gas_price }
+            # NOTE: from geth 1.5 on it will be just :send_transaction
+            res = connection.sign_and_send_transaction(args, passphrase)
+            if res["error"]
+              raise "Error : #{res["message"]}"
+            end
+            txid = res["result"]
             return Ethereum::Transaction.new(txid, self.connection, payload.join(), args)
           end
 
