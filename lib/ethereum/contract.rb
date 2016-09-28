@@ -205,9 +205,8 @@ module Ethereum
             args = { to: address,from: sender, data: data, gas: gas, gasPrice: gas_price }
             # NOTE: from geth 1.5 on it will be just :send_transaction
             res = connection.sign_and_send_transaction(args, passphrase)
-            if res["error"]
-              raise "Error : #{res["message"]}"
-            end
+            return {result: :error, res["error"]["message"]} if res["error"]
+
             txid = res["result"]
             return Ethereum::Transaction.new(txid, self.connection, payload.join(), args)
           end
