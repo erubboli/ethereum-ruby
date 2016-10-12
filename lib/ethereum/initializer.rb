@@ -3,21 +3,18 @@ module Ethereum
   class Initializer
     attr_accessor :contracts, :file, :client
 
-    def initialize(file, client = Ethereum::IpcClient.new)
-      @file = File.read(file)
+    def initialize(client = Ethereum::IpcClient.new)
       @client = client
-      sol_output = @client.compile_solidity(@file)
-      if sol_output["error"]
-        raise "Error compiling solidity file: #{sol_output["error"]["message"]}"
-      end
-      contracts = sol_output["result"].keys
-      @contracts = []
-      contracts.each do |contract|
-        abi = sol_output["result"][contract]["info"]["abiDefinition"]
-        name = contract
-        code = sol_output["result"][contract]["code"]
-        @contracts << Ethereum::Contract.new(name, code, abi)
-      end
+    end
+
+    def use_solidity(file)
+      @file = File.read(file)
+      @contracts = compile_solidity
+    end
+
+    def use_compiled(file)
+      @file = File.read(file)
+      @contracts = parse_file
     end
 
     def build_all
@@ -26,5 +23,24 @@ module Ethereum
       end
     end
 
+    private
+
+    def parse_file
+      src = JSON.parse(@file)
+      src["contracts"].map do |name,con|
+        Ethereum::Contract.new name, con["bin"], con["abi"]
+      end
+    end
+
+    def compile_solidity
+      resp = @client.compile_solidity(@file)
+      raise "Error compiling solidity file: #{resp["error"]["message"]}" if resp["error"]
+      contract_names = resp["result"].keys
+      contract_names.map do |name|
+        abi = resp["result"][name]["info"]["abiDefinition"]
+        code = resp["result"][name]["code"]
+        Ethereum::Contract.new(name, code, abi)
+      end
+    end
   end
 end
