@@ -28,7 +28,7 @@ module Ethereum
     def parse_file
       src = JSON.parse(@file)
       src["contracts"].map do |name,con|
-        Ethereum::Contract.new name, con["bin"], con["abi"]
+        Ethereum::Contract.new name, con["bin"], JSON.parse(con["abi"])
       end
     end
 
