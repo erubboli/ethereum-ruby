@@ -36,14 +36,16 @@ module Ethereum
           deploy_code = binary
           deploy_arguments = ""
           if constructor_inputs.present?
-            raise "Missing constructor parameter" and return if params.length != constructor_inputs.length
+            raise "Missing constructor parameter (#{params.length} of #{constructor_inputs.length})" and return if params.length != constructor_inputs.length
             constructor_inputs.each_index do |i|
               args = [constructor_inputs[i]["type"], params[i]]
               deploy_arguments << formatter.to_payload(args)
             end
           end
           deploy_payload = deploy_code + deploy_arguments
-          deploytx = connection.send_transaction({from: self.sender, gas: self.gas, gasPrice: self.gas_price, data: "0x" + deploy_payload})["result"]
+          payload = {from: self.sender, gas: self.gas, gasPrice: self.gas_price, data: "0x" + deploy_payload}
+          resp = connection.sign_and_send_transaction(payload, passphrase)
+          deploytx = resp["result"]
           instance_variable_set("@deployment", Ethereum::Deployment.new(deploytx, connection))
         end
 
@@ -118,19 +120,19 @@ module Ethereum
             return filter_id["result"]
           end
 
-          define_method "gfl_#{evt.name.underscore}".to_sym do |filter_id|
+          define_method "gfl_#{evt.name.underscore}".to_sym do |filter_ids|
             formatter = Ethereum::Formatter.new
-            logs = connection.get_filter_logs(filter_id)
+            logs = connection.get_filter_logs(filter_ids)
             collection = []
             logs["result"].each do |result|
               inputs = evt.input_types
-              outputs = inputs.zip(result["topics"][1..-1])
+              outputs = inputs.zip(result["topics"][1..-1].append(result["data"]))
               data = {blockNumber: result["blockNumber"].hex, transactionHash: result["transactionHash"], blockHash: result["blockHash"], transactionIndex: result["transactionIndex"].hex, topics: []}
               outputs.each do |output|
                 data[:topics] << formatter.from_payload(output)
               end
               collection << data
-            end
+            end if logs["result"]
             return collection
           end
 
@@ -175,7 +177,9 @@ module Ethereum
             arg_types.zip(args).each do |arg|
               payload << formatter.to_payload(arg)
             end
-            raw_result = connection.call({to: self.address, from: self.sender, data: payload.join()})["result"]
+            res = connection.call({to: self.address, from: self.sender, data: payload.join()})
+            return {result: "error", message: res["error"]["message"]} if res["error"]
+            raw_result = res["result"]
             formatted_result = fun.outputs.collect {|x| x.type }.zip(raw_result.gsub(/^0x/,'').scan(/.{64}/))
             output = formatted_result.collect {|x| formatter.from_payload(x) }
             return {data: "0x" + payload.join(), raw: raw_result, formatted: output}

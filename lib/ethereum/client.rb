@@ -17,7 +17,7 @@ module Ethereum
     eth_uninstallFilter eth_getFilterChanges eth_getFilterLogs eth_getLogs
     eth_getWork eth_submitWork eth_submitHashrate db_putString db_getString
     db_putHex db_getHex shh_post shh_version shh_newIdentity shh_hasIdentity
-    shh_newGroup shh_addToGroup shh_newFilter shh_uninstallFilter
+    shh_newGroup shh_addToGroup shh_uninstallFilter
     shh_getFilterChanges shh_getMessages)
 
     # https://github.com/ethereum/go-ethereum/wiki/Management-APIs
